@@ -1,0 +1,30 @@
+cluster_id                   = "release-party"
+project_id                   = "determined-ai"
+network_project_id           = "dai-public"
+network                      = "restricted-shared-network"
+subnetwork                   = "restricted-shared-network"
+region                       = "us-west1"
+zone                         = "us-west1-b"
+gcs_bucket                   = "release-party"
+master_service_account_email = "argo-determined-ai-vm-master@determined-ai.iam.gserviceaccount.com"
+agent_service_account_email  = "argo-determined-ai-vm-agent@determined-ai.iam.gserviceaccount.com"
+agent_boot_disk_image        = "projects/determined-ai/global/images/det-environments-2409e48"
+master_boot_disk_image       = "ubuntu-os-cloud/ubuntu-1604-lts"
+master_docker_image          = "determinedai/determined-ee-master:0.16.2rc1"
+agent_docker_image           = "determinedai/determined-ee-agent:0.16.2rc1"
+network_tag                  = "https-server"
+
+
+master_instance_type  = "n1-standard-2"
+agent_instance_type   = "n1-standard-32"
+gpu_type              = "nvidia-tesla-v100"
+gpu_num               = 8
+max_instances         = 8
+preemptible           = false
+agent_docker_network  = "host"
+master_docker_network = "host"
+max_idle_agent_period = "30m"
+create_static_ip      = true
+address_type          = "EXTERNAL"
+det_version           = "0.16.2"
+port                  = 443
