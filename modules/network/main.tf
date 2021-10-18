@@ -46,7 +46,18 @@ data "google_compute_subnetwork" "default" {
   #network = data.google_compute_network.private_network.self_link
 }
 
+
 locals {
   network_self_link    = data.google_compute_network.private_network.self_link
   subnetwork_self_link = data.google_compute_subnetwork.default.self_link
+}
+
+data "google_service_networking_connection" "private_vpc_connection" {
+  provider = google-beta
+  network                 = local.network_self_link
+
+}
+
+locals {
+  service_networking_connection = data.google_service_networking_connection.private_vpc_connection.network
 }
