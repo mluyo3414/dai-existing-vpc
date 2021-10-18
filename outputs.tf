@@ -1,5 +1,7 @@
 output "A1--Network" {
-  value = "                           ${module.network.network_name}"
+  #value = "                           ${module.network.network_name}"
+  value = "                           ${var.network}"
+
 }
 
 output "A2--Region" {

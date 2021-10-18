@@ -1,4 +1,4 @@
-// Create Network if it doesn't exist
+/*** Create Network if it doesn't exist
 
 resource "google_compute_network" "private_network" {
   provider = google-beta
@@ -32,4 +32,21 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 
 locals {
   service_networking_connection = google_service_networking_connection.private_vpc_connection.network
+}
+***/
+data "google_compute_network" "private_network" {
+  provider = google-beta
+  project  = var.network_project_id
+  name     = var.network
+}
+
+data "google_compute_subnetwork" "default" {
+  provider = google-beta
+  name     = var.subnetwork
+  #network = data.google_compute_network.private_network.self_link
+}
+
+locals {
+  network_self_link    = data.google_compute_network.private_network.self_link
+  subnetwork_self_link = data.google_compute_subnetwork.default.self_link
 }

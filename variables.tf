@@ -240,3 +240,6 @@ variable "db_ssl_enabled" {
   type = bool
   default = true
 }
+variable "network_project_id" {
+  type = string
+}

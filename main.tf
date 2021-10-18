@@ -27,7 +27,7 @@ terraform {
 
 /******************************************
 	VPC configuration
- *****************************************/
+ *****************************************
 
 module "network" {
   source = "./modules/network"
@@ -36,7 +36,14 @@ module "network" {
   unique_id = local.unique_id
   network = var.network
 }
+*****************************************/
+module "network" {
+  source = "./modules/network"
 
+  network_project_id = var.network_project_id
+  network            = var.network
+  subnetwork         = var.subnetwork
+}
 
 /******************************************
 	Service Account configuration
@@ -74,7 +81,8 @@ module "filestore" {
 
   project_id = var.project_id
   zone = var.zone
-  network_name = module.network.network_name
+  #network_name = module.network.network_name
+  network_name = var.network
 
   unique_id = local.unique_id
 }
@@ -122,7 +130,9 @@ module "firewall" {
   source = "./modules/firewall"
 
   unique_id = local.unique_id
-  network_name = module.network.network_name
+  #network_name = module.network.network_name
+  network_name = var.network
+
   port = var.port
 }
 
@@ -171,8 +181,10 @@ module "compute" {
   cpu_env_image = var.cpu_env_image
   gpu_env_image = var.gpu_env_image
 
-  network_name = module.network.network_name
-  subnetwork_name = module.network.subnetwork_name
+  #network_name = module.network.network_name
+  #subnetwork_name = module.network.subnetwork_name
+  network_name = var.network
+  subnetwork_name = var.subnetwork
   static_ip = module.ip.static_ip_address
   service_account_email = module.service_account.service_account_email
   filestore_address = local.filestore_address
