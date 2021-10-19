@@ -27,14 +27,7 @@ resource "google_compute_instance" "master_instance" {
 
   metadata_startup_script = <<-EOT
     mkdir -p /usr/local/determined/etc
-
-    cat << 'EOF' > /usr/local/determined/etc/master.yaml.tmpl
-    ${var.master_config_template}
-    EOF
-
-    cat << EOF > /usr/local/determined/etc/master.yaml.context
-    checkpoint_storage:
-      bucket: "${var.gcs_bucket}"
+    cat << EOF > /usr/local/determined/etc/master.yaml
 
     db:
       user: "${var.db_username}"
@@ -43,69 +36,146 @@ resource "google_compute_instance" "master_instance" {
       port: 5432
       name: "${var.database_name}"
       ssl_mode: ${var.database_ssl_enabled ? "verify-ca" : "disable"}
-      ssl_root_cert: ${var.database_ssl_enabled ? "/etc/determined/db_ssl_root_cert.pem" : ""}
+      ssl_root_cert: ${var.database_ssl_enabled ? "/etc/determined/etc/db_ssl_root_cert.pem" : ""}
 
-    cpu_env_image: ${var.cpu_env_image}
-    gpu_env_image: ${var.gpu_env_image}
+    checkpoint_storage:
+      type: gcs
+      bucket: "${var.gcs_bucket}"
 
     resource_manager:
+      type: agent
+      default_aux_resource_pool: aux-pool
+      default_compute_resource_pool: compute-pool
       scheduler:
         type: "${var.scheduler_type}"
-        preemption: "${var.preemption_enabled}"
+    EOF
 
+    if [ "${var.scheduler_type}" = "priority" ]; then
+      cat << EOF >> /usr/local/determined/etc/master.yaml
+        preemption: ${var.preemption_enabled}
+
+    EOF
+    fi
+
+    cat << EOF >> /usr/local/determined/etc/master.yaml
     resource_pools:
-      pools:
-        aux_pool:
-          max_aux_containers_per_agent: ${var.max_aux_containers_per_agent}
+      - pool_name: aux-pool
+        max_aux_containers_per_agent: ${var.max_aux_containers_per_agent}
+        provider:
+    EOF
+
+    if [ -n "${var.filestore_address}" ]; then
+      cat << EOF >> /usr/local/determined/etc/master.yaml
+          startup_script: |
+                          apt-get -y update && apt-get -y install nfs-common
+                          mkdir -p /mnt/shared_fs
+                          mount ${var.filestore_address} /mnt/shared_fs
+                          df -h --type=nfs
+    EOF
+    fi
+
+    cat << EOF >> /usr/local/determined/etc/master.yaml
+          boot_disk_source_image: projects/determined-ai/global/images/${var.environment_image}
+          agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          master_url: ${var.scheme}://internal-ip:${var.port}
+          agent_docker_network: ${var.agent_docker_network}
+          max_idle_agent_period: ${var.max_idle_agent_period}
+          max_agent_starting_period: ${var.max_agent_starting_period}
+          type: gcp
+          name_prefix: det-dynamic-agent-${var.unique_id}-${var.det_version_key}-
+          label_key: managed-by
+          label_value: det-master-${var.unique_id}-${var.det_version_key}
+          network_interface:
+            network: projects/${var.project_id}/global/networks/${var.network_name}
+            subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
+            external_ip: true
+          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}]
+          service_account:
+            email: "${var.service_account_email}"
+            scopes: ["https://www.googleapis.com/auth/cloud-platform"]
           instance_type:
             machine_type: ${var.aux_agent_instance_type}
             gpu_type: ${var.gpu_type}
             gpu_num: 0
             preemptible: ${var.preemptible}
-        compute_pool:
+          min_instances: ${var.min_dynamic_agents}
+          max_instances: ${var.max_dynamic_agents}
+          operation_timeout_period: ${var.operation_timeout_period}
+          base_config:
+            minCpuPlatform: ${var.min_cpu_platform_agent}
+          use_cloud_logging: true
+
+      - pool_name: compute-pool
+        max_aux_containers_per_agent: 0
+        provider:
+    EOF
+
+    if [ -n "${var.filestore_address}" ]; then
+      cat << EOF >> /usr/local/determined/etc/master.yaml
+          startup_script: |
+                          apt-get -y update && apt-get -y install nfs-common
+                          mkdir -p /mnt/shared_fs
+                          mount ${var.filestore_address} /mnt/shared_fs
+                          df -h --type=nfs
+    EOF
+    fi
+
+    cat << EOF >> /usr/local/determined/etc/master.yaml
+          boot_disk_source_image: projects/determined-ai/global/images/${var.environment_image}
+          agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          master_url: ${var.scheme}://internal-ip:${var.port}
+          agent_docker_network: ${var.agent_docker_network}
+          max_idle_agent_period: ${var.max_idle_agent_period}
+          max_agent_starting_period: ${var.max_agent_starting_period}
+          type: gcp
+          name_prefix: det-dynamic-agent-${var.unique_id}-${var.det_version_key}-
+          label_key: managed-by
+          label_value: det-master-${var.unique_id}-${var.det_version_key}
+          network_interface:
+            network: projects/${var.project_id}/global/networks/${var.network_name}
+            subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
+            external_ip: true
+          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}]
+          service_account:
+            email: "${var.service_account_email}"
+            scopes: ["https://www.googleapis.com/auth/cloud-platform"]
           instance_type:
             machine_type: ${var.compute_agent_instance_type}
             gpu_type: ${var.gpu_type}
             gpu_num: ${var.gpu_num}
             preemptible: ${var.preemptible}
-      gcp:
-        boot_disk_source_image: projects/determined-ai/global/images/${var.environment_image}
-        agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
-        master_url: ${var.scheme}://internal-ip:${var.port}
-        agent_docker_network: ${var.agent_docker_network}
-        max_idle_agent_period: ${var.max_idle_agent_period}
-        max_agent_starting_period: ${var.max_agent_starting_period}
-        type: gcp
-        name_prefix: det-dynamic-agent-${var.unique_id}-${var.det_version_key}-
-        label_key: managed-by
-        label_value: det-master-${var.unique_id}-${var.det_version_key}
-        network_interface:
-          network: projects/${var.project_id}/global/networks/${var.network_name}
-          subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
-          external_ip: true
-        network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}]
-        service_account:
-          email: "${var.service_account_email}"
-          scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-        min_instances: ${var.min_dynamic_agents}
-        max_instances: ${var.max_dynamic_agents}
-        operation_timeout_period: ${var.operation_timeout_period}
-        base_config:
-          minCpuPlatform: ${var.min_cpu_platform_agent}
-        use_cloud_logging: true
+          cpu_slots_allowed: true
+          min_instances: ${var.min_dynamic_agents}
+          max_instances: ${var.max_dynamic_agents}
+          operation_timeout_period: ${var.operation_timeout_period}
+          base_config:
+            minCpuPlatform: ${var.min_cpu_platform_agent}
+          use_cloud_logging: true
+
+    task_container_defaults:
     EOF
 
-    if [ -n "${var.filestore_address}" ]; then
-      cat << EOF >> /usr/local/determined/etc/master.yaml.context
-        startup_script: |
-                        apt-get -y update && apt-get -y install nfs-common
-                        mkdir -p /mnt/shared_fs
-                        mount ${var.filestore_address} /mnt/shared_fs
-                        df -h --type=nfs
+    if [ -n "${var.cpu_env_image}" ] || [ -n "${var.gpu_env_image}" ]; then
+      cat << EOF >> /usr/local/determined/etc/master.yaml
+      image:
+    EOF
+      if [ -n "${var.cpu_env_image}" ]; then
+        cat << EOF >> /usr/local/determined/etc/master.yaml
+        cpu: ${var.cpu_env_image}
+    EOF
+      fi
+      if [ -n "${var.gpu_env_image}" ]; then
+        cat << EOF >> /usr/local/determined/etc/master.yaml
+        gpu: ${var.gpu_env_image}
+    EOF
+      fi
+    fi
 
-    bind_mounts:
-      - host_path: /mnt/shared_fs
-        container_path: /run/determined/workdir/shared_fs
+    if [ -n "${var.filestore_address}" ]; then
+      cat << EOF >> /usr/local/determined/etc/master.yaml
+      bind_mounts:
+        - host_path: /mnt/shared_fs
+          container_path: /run/determined/workdir/shared_fs
     EOF
     fi
 
@@ -131,23 +201,14 @@ resource "google_compute_instance" "master_instance" {
 
     docker network create ${var.master_docker_network}
 
-    touch /usr/local/determined/etc/master.yaml
-    docker run \
-        --name determined-master-configurator \
-        --rm \
-        -v /usr/local/determined/etc/:/etc/determined/ \
-        --entrypoint /bin/bash \
-        ${var.image_repo_prefix}/determined-master:${var.det_version} \
-        -c "/usr/bin/determined-gotmpl -i /etc/determined/master.yaml.context /etc/determined/master.yaml.tmpl > /etc/determined/master.yaml"
-    test $? -eq 0 || ( echo "Failed to generate master.yaml" && exit 1 )
-
     docker run \
         --name determined-master \
         --network ${var.master_docker_network} \
         --restart unless-stopped \
         --log-driver=gcplogs \
         -p ${var.port}:${var.port} \
-        -v /usr/local/determined/etc/:/etc/determined/ \
+        -v /usr/local/determined/etc/master.yaml:/etc/determined/master.yaml \
+        -v /usr/local/determined/etc/db_ssl_root_cert.pem:/etc/determined/etc/db_ssl_root_cert.pem \
         ${var.image_repo_prefix}/determined-master:${var.det_version}
 
   EOT
@@ -208,16 +269,15 @@ resource "google_compute_instance" "agent_instance" {
         ${var.image_repo_prefix}/determined-agent:${var.det_version}  run --master-port=${var.port}
 
   EOT
- /***
-  network_interface {
+
+  /**network_interface {
     network = var.network_name
     subnetwork = var.subnetwork_name
     access_config {
-    
     }
-  }***/
-  
-  network_interface {
+  }*/
+
+    network_interface {
     subnetwork         = var.subnetwork_name
     subnetwork_project = var.network_project_id
     network_ip         = var.address_type == "EXTERNAL" ? null : var.ip

@@ -142,6 +142,7 @@ variable "cpu_env_image" {
 
 variable "gpu_env_image" {
 }
-
+/**
 variable "master_config_template" {
 }
+**/
