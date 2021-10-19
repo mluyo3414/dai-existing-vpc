@@ -17,7 +17,6 @@ agent_docker_image           = "determinedai/determinedai/determined-master:0.16
 #network_tag                  = "https-server"
 det_version_key = "0-16-3"
 environment_image        = "projects/determined-ai/global/images/det-environments-84e8332"
-#network_self_link = "https://www.googleapis.com/compute/v1/projects/determined-ai/global/networks/ms-test-f"
 #min_cpu_platform_master = "Intel Cascade Lake"
 
 master_instance_type  = "n1-standard-32"
