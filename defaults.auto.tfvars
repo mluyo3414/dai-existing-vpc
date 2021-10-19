@@ -31,5 +31,5 @@ master_docker_network = "host"
 max_idle_agent_period = "30m"
 create_static_ip      = true
 address_type          = "EXTERNAL"
-det_version           = "0.16.3rc2"
+det_version           = "0.16.3"
 port                  = 8080
