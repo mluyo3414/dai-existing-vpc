@@ -1,7 +1,7 @@
 // Miscellaneous variables to ensure dependency structure
 locals {
   network_exists = var.network_self_link != null ? 1 : 0
-  service_networking_connection_exists = var.service_networking_connection != null ? 1 : 0
+  #service_networking_connection_exists = var.service_networking_connection != null ? 1 : 0
 }
 
 // Random integer to use
@@ -17,7 +17,9 @@ resource "google_sql_database_instance" "db_instance" {
   database_version = var.db_version
   deletion_protection = false
 
-  depends_on = [var.network_self_link, var.service_networking_connection]
+ # depends_on = [var.network_self_link, var.service_networking_connection]
+  depends_on = [var.network_self_link]
+
 
   settings {
     tier = var.db_tier

@@ -1,5 +1,12 @@
 variable "unique_id" {
 }
+variable "ip" {
+}
+
+variable "address_type" {
+}
+variable "network_project_id" {
+}
 
 variable "det_version_key" {
 }

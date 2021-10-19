@@ -20,6 +20,7 @@ variable "network_self_link" {
 variable "unique_id" {
   type = string
 }
-
+/***
 variable "service_networking_connection" {
 }
+*/

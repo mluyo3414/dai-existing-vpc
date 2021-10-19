@@ -118,7 +118,7 @@ module "database" {
   db_password = var.db_password
   db_version = var.db_version
   network_self_link = module.network.network_self_link
-  service_networking_connection = module.network.service_networking_connection
+  #service_networking_connection = module.network.service_networking_connection
 }
 
 
@@ -143,7 +143,9 @@ module "firewall" {
 
 module "compute" {
   source = "./modules/compute"
-
+  ip = module.ip.static_ip_address
+  address_type = var.address_type
+  network_project_id      = var.network_project_id
   unique_id = local.unique_id
   det_version_key = local.det_version_key
   project_id = var.project_id

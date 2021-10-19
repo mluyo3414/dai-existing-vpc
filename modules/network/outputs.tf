@@ -22,6 +22,3 @@ output "network_self_link" {
 output "subnetwork_self_link" {
   value = local.subnetwork_self_link
 }
-output "service_networking_connection" {
-  value = local.service_networking_connection 
-}

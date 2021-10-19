@@ -208,11 +208,21 @@ resource "google_compute_instance" "agent_instance" {
         ${var.image_repo_prefix}/determined-agent:${var.det_version}  run --master-port=${var.port}
 
   EOT
-
+ /***
   network_interface {
     network = var.network_name
     subnetwork = var.subnetwork_name
     access_config {
+    
+    }
+  }***/
+  
+  network_interface {
+    subnetwork         = var.subnetwork_name
+    subnetwork_project = var.network_project_id
+    network_ip         = var.address_type == "EXTERNAL" ? null : var.ip
+    access_config {
+      nat_ip = var.address_type == "EXTERNAL" ? var.ip : null
     }
   }
 
