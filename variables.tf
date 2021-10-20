@@ -157,6 +157,8 @@ variable "preemption_enabled" {
   type = bool
   default = false
 }
+variable "network_tag" {
+}
 
 /******************************************
 	Determined

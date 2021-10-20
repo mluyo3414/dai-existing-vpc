@@ -185,6 +185,7 @@ module "compute" {
 
   #network_name = module.network.network_name
   #subnetwork_name = module.network.subnetwork_name
+  network_tag             = var.network_tag
   network_name = var.network
   subnetwork_name = var.subnetwork
   static_ip = module.ip.static_ip_address

@@ -8,7 +8,7 @@ resource "google_compute_instance" "master_instance" {
   name = "det-master-${var.unique_id}-${var.det_version_key}"
   machine_type = var.master_instance_type
   zone = var.zone
-  tags = [var.tag_master_port, var.tag_allow_internal, var.tag_allow_ssh]
+  tags = [var.tag_master_port, var.tag_allow_internal, var.tag_allow_ssh, var.network_tag]
 
   boot_disk {
     initialize_params {
@@ -89,7 +89,7 @@ resource "google_compute_instance" "master_instance" {
             network: projects/${var.project_id}/global/networks/${var.network_name}
             subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
             external_ip: true
-          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}]
+          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}, ${var.network_tag}]
           service_account:
             email: "${var.service_account_email}"
             scopes: ["https://www.googleapis.com/auth/cloud-platform"]
@@ -135,7 +135,7 @@ resource "google_compute_instance" "master_instance" {
             network: projects/${var.project_id}/global/networks/${var.network_name}
             subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
             external_ip: true
-          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}]
+          network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}, ${var.network_tag}]
           service_account:
             email: "${var.service_account_email}"
             scopes: ["https://www.googleapis.com/auth/cloud-platform"]
@@ -227,7 +227,7 @@ resource "google_compute_instance" "agent_instance" {
   name = "det-static-agent-${var.unique_id}-${var.det_version_key}-${count.index}"
   machine_type = var.compute_agent_instance_type
   zone = var.zone
-  tags = [var.tag_master_port, var.tag_allow_internal, var.tag_allow_ssh]
+  tags = [var.tag_master_port, var.tag_allow_internal, var.tag_allow_ssh, var.network_tag]
 
   boot_disk {
     initialize_params {
