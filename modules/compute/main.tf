@@ -88,7 +88,7 @@ resource "google_compute_instance" "master_instance" {
           network_interface:
             network: projects/${var.project_id}/global/networks/${var.network_name}
             subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
-            external_ip: true
+            external_ip: false
           network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}, ${var.network_tag}]
           service_account:
             email: "${var.service_account_email}"
@@ -134,7 +134,7 @@ resource "google_compute_instance" "master_instance" {
           network_interface:
             network: projects/${var.project_id}/global/networks/${var.network_name}
             subnetwork: projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}
-            external_ip: true
+            external_ip: false
           network_tags: [${var.tag_allow_internal}, ${var.tag_allow_ssh}, ${var.network_tag}]
           service_account:
             email: "${var.service_account_email}"
@@ -216,9 +216,9 @@ resource "google_compute_instance" "master_instance" {
   network_interface {
     network = var.network_name
     subnetwork = var.subnetwork_name
-    access_config {
-      nat_ip = var.static_ip
-    }
+    # access_config {
+    #   nat_ip = var.static_ip
+    # }
   }
 }
 
@@ -280,10 +280,10 @@ resource "google_compute_instance" "agent_instance" {
     network_interface {
     subnetwork         = var.subnetwork_name
     subnetwork_project = var.network_project_id
-    network_ip         = var.address_type == "EXTERNAL" ? null : var.ip
-    access_config {
-      nat_ip = var.address_type == "EXTERNAL" ? var.ip : null
-    }
+    #network_ip         = var.address_type == "EXTERNAL" ? null : var.ip
+    #access_config {
+      #nat_ip = var.address_type == "EXTERNAL" ? var.ip : null
+    #}
   }
 
   depends_on = [

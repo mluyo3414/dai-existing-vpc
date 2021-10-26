@@ -246,6 +246,6 @@ variable "db_ssl_enabled" {
 variable "network_project_id" {
   type = string
 }
-variable "address_type" {
-  type = string
-}
+# variable "address_type" {
+#   type = string
+# }
