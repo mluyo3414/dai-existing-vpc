@@ -249,3 +249,14 @@ variable "network_project_id" {
 variable "address_type" {
   type = string
 }
+
+variable "master_docker_image" {
+  type = string
+}
+variable "agent_docker_image" {
+  type = string
+}
+
+variable "registry_location" {
+  type = string
+}

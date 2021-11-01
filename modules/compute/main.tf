@@ -76,7 +76,8 @@ resource "google_compute_instance" "master_instance" {
 
     cat << EOF >> /usr/local/determined/etc/master.yaml
           boot_disk_source_image: projects/determined-ai/global/images/${var.environment_image}
-          agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          # agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          agent_docker_image: ${var.agent_docker_image}
           master_url: ${var.scheme}://internal-ip:${var.port}
           agent_docker_network: ${var.agent_docker_network}
           max_idle_agent_period: ${var.max_idle_agent_period}
@@ -122,7 +123,8 @@ resource "google_compute_instance" "master_instance" {
 
     cat << EOF >> /usr/local/determined/etc/master.yaml
           boot_disk_source_image: projects/determined-ai/global/images/${var.environment_image}
-          agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          # agent_docker_image: ${var.image_repo_prefix}/determined-agent:${var.det_version}
+          agent_docker_image: ${var.agent_docker_image}
           master_url: ${var.scheme}://internal-ip:${var.port}
           agent_docker_network: ${var.agent_docker_network}
           max_idle_agent_period: ${var.max_idle_agent_period}
@@ -199,6 +201,9 @@ resource "google_compute_instance" "master_instance" {
     ${var.database_ssl_root_cert}
     EOF
 
+
+    gcloud auth configure-docker ${var.registry_location}
+
     docker network create ${var.master_docker_network}
 
     docker run \
@@ -209,7 +214,7 @@ resource "google_compute_instance" "master_instance" {
         -p ${var.port}:${var.port} \
         -v /usr/local/determined/etc/master.yaml:/etc/determined/master.yaml \
         -v /usr/local/determined/etc/db_ssl_root_cert.pem:/etc/determined/etc/db_ssl_root_cert.pem \
-        ${var.image_repo_prefix}/determined-master:${var.det_version}
+        ${var.master_docker_image}
 
   EOT
 
@@ -256,6 +261,8 @@ resource "google_compute_instance" "agent_instance" {
   }
 
   metadata_startup_script = <<-EOT
+    gcloud auth configure-docker ${var.master_docker_network}
+
     docker network create ${var.agent_docker_network}
 
     docker run \
@@ -266,7 +273,7 @@ resource "google_compute_instance" "agent_instance" {
         -v /var/run/docker.sock:/var/run/docker.sock \
         -e DET_MASTER_HOST=${google_compute_instance.master_instance.network_interface.0.network_ip} \
         -e DET_RESOURCE_POOL=compute-pool \
-        ${var.image_repo_prefix}/determined-agent:${var.det_version}  run --master-port=${var.port}
+        ${var.agent_docker_image} run --master-port=${var.port}
 
   EOT
 

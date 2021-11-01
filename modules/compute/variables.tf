@@ -149,3 +149,12 @@ variable "network_tag" {
 variable "master_config_template" {
 }
 **/
+variable "master_docker_image" {
+  type = string
+}
+variable "agent_docker_image" {
+  type = string
+}
+variable "registry_location" {
+  type = string
+}

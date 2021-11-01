@@ -199,4 +199,7 @@ module "compute" {
   tag_master_port = module.firewall.tag_master_port
   tag_allow_internal = module.firewall.tag_allow_internal
   tag_allow_ssh = module.firewall.tag_allow_ssh
+  master_docker_image=var.master_docker_image
+  agent_docker_image=var.agent_docker_image
+  registry_location=var.registry_location
 }
