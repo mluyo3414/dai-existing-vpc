@@ -144,7 +144,7 @@ module "firewall" {
 module "compute" {
   source = "./modules/compute"
   ip = module.ip.static_ip_address
-  # address_type = var.address_type
+  address_type = var.address_type
   network_project_id      = var.network_project_id
   unique_id = local.unique_id
   det_version_key = local.det_version_key

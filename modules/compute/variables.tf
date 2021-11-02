@@ -3,8 +3,8 @@ variable "unique_id" {
 variable "ip" {
 }
 
-# variable "address_type" {
-# }
+variable "address_type" {
+}
 variable "network_project_id" {
 }
 
